@@ -9,12 +9,25 @@ from .permissions import IsAdminOrManager, IsAuthenticated, IsCustomer, IsDelive
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
-
+# CategoryViewSet:
+#   - CRUD operations for menu categories.
+#   - Only Admins/Managers can access.
+#   - GET lists all categories.
+#   - POST creates a new category.
+#   - PUT/PATCH updates an existing category.
+#   - DELETE removes a category.
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrManager]
-
+# MenuItemViewSet:
+#   - CRUD operations for menu items.
+#   - Filtering, searching, and ordering supported.
+#   - Only Admins/Managers can modify; anyone can view.
+#   - GET lists all menu items.
+#   - POST creates a new menu item.
+#   - PUT/PATCH updates an existing menu item.
+#   - DELETE removes a menu item.
 class MenuItemViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
@@ -28,7 +41,12 @@ class MenuItemViewSet(viewsets.ModelViewSet):
         if self.request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
             return [IsAdminOrManager()]
         return []
-
+# CartViewSet:
+#   - View, add, and clear cart items for authenticated customers.
+#   - Permissions: IsAuthenticated and IsCustomer.
+#   - GET lists cart items.
+#   - POST adds a menu item to the cart with quantity and calculates price.
+#   - DELETE clears the cart.
 class CartViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCustomer]
 
@@ -61,7 +79,17 @@ class CartViewSet(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         Cart.objects.filter(user=request.user).delete()
         return Response({"detail": "Cart cleared"}, status=status.HTTP_200_OK)
-
+# OrderViewSet:
+#   - CRUD operations for orders.
+#   - Permissions and queryset filtered by user group:
+#       - Managers: all orders.
+#       - Delivery crew: assigned orders.
+#       - Customers: own orders.
+#   - POST creates an order from the user's cart.
+#   - PATCH allows managers to assign delivery crew and update status;
+#     delivery crew can update status only.
+#   - GET returns orders based on user group.
+#   - Filtering, searching, and ordering supported.
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
@@ -162,6 +190,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 def get_group(name):
     return Group.objects.get(name=name)
 
+# ManagerGroupView / ManagerGroupDetailView:
+#   - GET: List users in Manager group.
+#   - POST: Add user to Manager group.
+#   - DELETE: Remove user from Manager group.
+#
 # /api/groups/manager/users
 class ManagerGroupView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
@@ -181,7 +214,6 @@ class ManagerGroupView(APIView):
             return Response({"message": "User added to Manager group"}, status=201)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
-
 # /api/groups/manager/users/{userId}
 class ManagerGroupDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
@@ -195,7 +227,11 @@ class ManagerGroupDetailView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
 
-
+# DeliveryCrewGroupView / DeliveryCrewGroupDetailView:
+#   - GET: List users in Delivery crew group.
+#   - POST: Add user to Delivery crew group.
+#   - DELETE: Remove user from Delivery crew group.
+#
 # /api/groups/delivery-crew/users
 class DeliveryCrewGroupView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdminOrManager]
