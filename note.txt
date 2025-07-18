@@ -1,0 +1,20 @@
+admin user
+username: admin
+password: Test@123
+
+Manager Group Users
+username: ManagerUser1
+password: Test@123
+username: ManagerUser2
+password: Test@123
+
+Delivery crew users
+username: DeliveryCrew1
+password: Test@123
+username: DeliveryCrew2
+password: Test@123
+
+Customer user
+username: CustomerUser
+password: Test@123
+
